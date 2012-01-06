@@ -19,34 +19,47 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.commons;
+package com.scireum.open.statistics;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Generates unique ids for each call of "next". Once that almost Long.MAX_VALUE
- * ids where generated, the internal counter is reset and ids are re-used.
- * Therefore these ids are not meant to be persisted, since there is no
- * guarantee that they are unique for ever, but for a long time.
+ * Represents a counter for statistical use.
  */
-public class AtomicIdGenerator {
-	private final AtomicLong gen = new AtomicLong();
+public class Counter {
+	/**
+	 * When was this counter started or last reseted?
+	 */
+	private volatile long startTimeMillis = -1;
+	private volatile long count = 0;
 
-	public long next() {
-		long next = gen.incrementAndGet();
-		if (next > Long.MAX_VALUE - 10) {
-			// If we have an overflow, we get a real lock, check if another
-			// thread was faster, and if not, we reset the counter.
-			synchronized (gen) {
-				if (gen.get() > Long.MAX_VALUE - 10) {
-					gen.set(0l);
-				}
-			}
+	/**
+	 * Increments the counter by one.
+	 */
+	public void inc() {
+		if (startTimeMillis < 0) {
+			reset();
 		}
-		return next;
+		if (count < Long.MAX_VALUE - 10) {
+			count++;
+		}
 	}
 
-	public String nextString() {
-		return String.valueOf(next());
+	public double getAvgPer(TimeUnit unit) {
+		return (count) / getDuration(unit);
+	}
+
+	public long getCount() {
+		return count;
+	}
+
+	public long getDuration(TimeUnit unit) {
+		long delta = System.currentTimeMillis() - startTimeMillis;
+		return TimeUnit.MILLISECONDS.convert(delta, unit);
+	}
+
+	public void reset() {
+		startTimeMillis = System.currentTimeMillis();
+		count = 0;
 	}
 }

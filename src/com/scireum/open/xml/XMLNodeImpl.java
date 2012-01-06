@@ -1,3 +1,24 @@
+/**
+ * Copyright (c) 2012 scireum GmbH - Andreas Haufler - aha@scireum.de
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 package com.scireum.open.xml;
 
 import java.util.ArrayList;
@@ -5,6 +26,7 @@ import java.util.List;
 
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -17,16 +39,7 @@ import com.scireum.open.commons.Value;
 public class XMLNodeImpl implements StructuredNode {
 
 	private Node node;
-	private static XPathCompiler xc = new SimpleXPathCompiler();
-
-	/**
-	 * Overrides the default xpath compiler.
-	 */
-	public static void installCompilter(XPathCompiler compiler) {
-		if (compiler != null) {
-			xc = compiler;
-		}
-	}
+	private static final XPathFactory XPATH = XPathFactory.newInstance();
 
 	public XMLNodeImpl(Node root) {
 		node = root;
@@ -35,8 +48,8 @@ public class XMLNodeImpl implements StructuredNode {
 	@Override
 	public StructuredNode queryNode(String path)
 			throws XPathExpressionException {
-		Node result = (Node) xc.compile(path).evaluate(node,
-				XPathConstants.NODE);
+		Node result = (Node) XPATH.newXPath().compile(path)
+				.evaluate(node, XPathConstants.NODE);
 		if (result == null) {
 			return null;
 		}
@@ -46,8 +59,8 @@ public class XMLNodeImpl implements StructuredNode {
 	@Override
 	public List<StructuredNode> queryNodeList(String path)
 			throws XPathExpressionException {
-		NodeList result = (NodeList) xc.compile(path).evaluate(node,
-				XPathConstants.NODESET);
+		NodeList result = (NodeList) XPATH.newXPath().compile(path)
+				.evaluate(node, XPathConstants.NODESET);
 		List<StructuredNode> resultList = new ArrayList<StructuredNode>(
 				result.getLength());
 		for (int i = 0; i < result.getLength(); i++) {
@@ -65,7 +78,8 @@ public class XMLNodeImpl implements StructuredNode {
 
 	@Override
 	public String queryString(String path) throws XPathExpressionException {
-		Object result = xc.compile(path).evaluate(node, XPathConstants.NODE);
+		Object result = XPATH.newXPath().compile(path)
+				.evaluate(node, XPathConstants.NODE);
 		if (result == null) {
 			return null;
 		}

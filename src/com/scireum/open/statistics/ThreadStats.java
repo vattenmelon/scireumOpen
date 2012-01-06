@@ -19,34 +19,39 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.commons;
+package com.scireum.open.statistics;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.lang.Thread.State;
 
 /**
- * Generates unique ids for each call of "next". Once that almost Long.MAX_VALUE
- * ids where generated, the internal counter is reset and ids are re-used.
- * Therefore these ids are not meant to be persisted, since there is no
- * guarantee that they are unique for ever, but for a long time.
+ * Provides information about a java-thread.
  */
-public class AtomicIdGenerator {
-	private final AtomicLong gen = new AtomicLong();
+public class ThreadStats implements Comparable<ThreadStats> {
+	protected String name;
+	protected State state;
+	protected double cpuUtilisation;
+	protected long lastProbe;
+	protected long lastCPUTime;
 
-	public long next() {
-		long next = gen.incrementAndGet();
-		if (next > Long.MAX_VALUE - 10) {
-			// If we have an overflow, we get a real lock, check if another
-			// thread was faster, and if not, we reset the counter.
-			synchronized (gen) {
-				if (gen.get() > Long.MAX_VALUE - 10) {
-					gen.set(0l);
-				}
-			}
+	public String getName() {
+		return name;
+	}
+
+	public State getState() {
+		return state;
+	}
+
+	public double getCpuUtilisation() {
+		return cpuUtilisation;
+	}
+
+	@Override
+	public int compareTo(ThreadStats o) {
+		if (o == null) {
+			return -1;
 		}
-		return next;
+		return cpuUtilisation > o.cpuUtilisation ? -1
+				: cpuUtilisation == o.cpuUtilisation ? 0 : 1;
 	}
 
-	public String nextString() {
-		return String.valueOf(next());
-	}
 }

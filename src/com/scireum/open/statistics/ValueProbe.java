@@ -19,34 +19,50 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.commons;
+package com.scireum.open.statistics;
 
-import java.util.concurrent.atomic.AtomicLong;
+import static com.scireum.open.statistics.ProbeLog.equal;
 
 /**
- * Generates unique ids for each call of "next". Once that almost Long.MAX_VALUE
- * ids where generated, the internal counter is reset and ids are re-used.
- * Therefore these ids are not meant to be persisted, since there is no
- * guarantee that they are unique for ever, but for a long time.
+ * Base class for probes. Can be used, if the value is computed via a custom
+ * algorithm.
  */
-public class AtomicIdGenerator {
-	private final AtomicLong gen = new AtomicLong();
+public abstract class ValueProbe implements Probe {
 
-	public long next() {
-		long next = gen.incrementAndGet();
-		if (next > Long.MAX_VALUE - 10) {
-			// If we have an overflow, we get a real lock, check if another
-			// thread was faster, and if not, we reset the counter.
-			synchronized (gen) {
-				if (gen.get() > Long.MAX_VALUE - 10) {
-					gen.set(0l);
-				}
-			}
-		}
-		return next;
+	private final String name;
+	private final String category;
+
+	public ValueProbe(String category, String name) {
+		this.category = category;
+		this.name = name;
 	}
 
-	public String nextString() {
-		return String.valueOf(next());
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String getCategory() {
+		return category;
+	}
+
+	@Override
+	public int hashCode() {
+		return (category + name).hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof Probe)) {
+			return false;
+		}
+		return equal(name, ((Probe) obj).getName())
+				&& equal(category, ((Probe) obj).getCategory());
+	}
+
+	@Override
+	public String toString() {
+		return category + " - " + name;
 	}
 }

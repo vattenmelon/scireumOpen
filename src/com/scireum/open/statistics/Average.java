@@ -19,34 +19,51 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.commons;
-
-import java.util.concurrent.atomic.AtomicLong;
+package com.scireum.open.statistics;
 
 /**
- * Generates unique ids for each call of "next". Once that almost Long.MAX_VALUE
- * ids where generated, the internal counter is reset and ids are re-used.
- * Therefore these ids are not meant to be persisted, since there is no
- * guarantee that they are unique for ever, but for a long time.
+ * Represents an average value over a given set of values.
  */
-public class AtomicIdGenerator {
-	private final AtomicLong gen = new AtomicLong();
+public class Average {
 
-	public long next() {
-		long next = gen.incrementAndGet();
-		if (next > Long.MAX_VALUE - 10) {
-			// If we have an overflow, we get a real lock, check if another
-			// thread was faster, and if not, we reset the counter.
-			synchronized (gen) {
-				if (gen.get() > Long.MAX_VALUE - 10) {
-					gen.set(0l);
-				}
+	private long count = 0;
+	private long[] values = new long[100];
+	private int index = 0;
+	private int filled = 0;
+
+	/**
+	 * Adds value to the set of values on which the average is based. If the sum
+	 * of all values is > Long.MAX_VALUE or the count of all values is >
+	 * Long.Max_VALUE, the value is ignored.
+	 */
+	public void addValue(long value) {
+		synchronized (values) {
+			values[index++] = value;
+			if (index >= values.length - 1) {
+				index = 0;
+			}
+			if (index > filled) {
+				filled = index;
 			}
 		}
-		return next;
+		if (count >= Long.MAX_VALUE - 1) {
+			count = 0;
+		}
+		count++;
 	}
 
-	public String nextString() {
-		return String.valueOf(next());
+	public double getAvg() {
+		if (filled == 0) {
+			return 0.0D;
+		}
+		double result = 0.0d;
+		for (int i = 0; i <= filled; i++) {
+			result += values[i];
+		}
+		return result / (double) filled;
+	}
+
+	public long getCount() {
+		return count;
 	}
 }

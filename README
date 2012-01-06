@@ -1,0 +1,38 @@
+scireum OpenSource Library
+--------------------------
+
+This project contains open sourced components from our production
+codebase. They have minor source-modifications since we use or
+DIY dependency injection framework. However the better part of
+this code is running in large multi-tenant (insert fancy cloud 
+buzzword here) web applications 24/7 (more or less).
+
+The idea is, that you can pick up the useful bits and directly
+integrate those in your code-base (yep also in commercial ones).
+Feel free to rename classes and packages. Also feel free to contribute
+and send patches.
+
+Read more infos here:
+http://softwareengineeringcorner.blogspot.com/
+
+The code is covered by the MIT license:
+
+Copyright (c) 2012 scireum GmbH - Andreas Haufler - aha@scireum.de
+
+Permission is hereby granted, free of charge, to any person obtaining a 
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.

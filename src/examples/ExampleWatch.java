@@ -19,34 +19,25 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.commons;
+package examples;
 
-import java.util.concurrent.atomic.AtomicLong;
+import com.scireum.open.statistics.Watch;
 
 /**
- * Generates unique ids for each call of "next". Once that almost Long.MAX_VALUE
- * ids where generated, the internal counter is reset and ids are re-used.
- * Therefore these ids are not meant to be persisted, since there is no
- * guarantee that they are unique for ever, but for a long time.
+ * Small example class which shows how to use the {@link Watch} class.
  */
-public class AtomicIdGenerator {
-	private final AtomicLong gen = new AtomicLong();
+public class ExampleWatch {
 
-	public long next() {
-		long next = gen.incrementAndGet();
-		if (next > Long.MAX_VALUE - 10) {
-			// If we have an overflow, we get a real lock, check if another
-			// thread was faster, and if not, we reset the counter.
-			synchronized (gen) {
-				if (gen.get() > Long.MAX_VALUE - 10) {
-					gen.set(0l);
-				}
-			}
-		}
-		return next;
-	}
-
-	public String nextString() {
-		return String.valueOf(next());
+	public static void main(String[] args) throws Exception {
+		// Create a new watch..
+		Watch w = Watch.start();
+		// Do something...
+		Thread.sleep(100);
+		// Now we can conveniently measure the duration it took.
+		System.out.println(w.durationReset());
+		// ... even for short intervals which are below the resolution of the
+		// common system timer.
+		Thread.sleep(1);
+		System.out.println(w.microDuration(false));
 	}
 }

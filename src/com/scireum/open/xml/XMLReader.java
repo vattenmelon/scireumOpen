@@ -1,3 +1,24 @@
+/**
+ * Copyright (c) 2012 scireum GmbH - Andreas Haufler - aha@scireum.de
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 package com.scireum.open.xml;
 
 import java.io.File;
@@ -90,17 +111,10 @@ public class XMLReader extends DefaultHandler {
 		} catch (ParserConfigurationException e) {
 			throw new SAXException(e);
 		}
-		/**
-		 * Check if the user tried to interrupt parsing....
-		 */
-		if (interrupt != null && interrupt.isInterrupted()) {
-			throw new UserInterruptException();
-		}
 	}
 
 	private Map<String, NodeHandler> handlers = new TreeMap<String, NodeHandler>();
 	private List<SAX2DOMHandler> activeHandlers = new ArrayList<SAX2DOMHandler>();
-	private InterruptSignal interrupt;
 
 	/**
 	 * Registers a new handler for a qualified name of a node. Handlers are
@@ -111,14 +125,6 @@ public class XMLReader extends DefaultHandler {
 	 */
 	public void addHandler(String name, NodeHandler handler) {
 		handlers.put(name, handler);
-	}
-
-	/**
-	 * Parses the given stream
-	 */
-	public void parse(InputStream stream) throws ParserConfigurationException,
-			SAXException, IOException {
-		parse(stream, null, null);
 	}
 
 	/**
@@ -136,10 +142,8 @@ public class XMLReader extends DefaultHandler {
 	/**
 	 * Parses the given stream and using the given monitor
 	 */
-	public void parse(InputStream stream, final ResourceLocator locator,
-			InterruptSignal interrupt) throws ParserConfigurationException,
+	public void parse(InputStream stream) throws ParserConfigurationException,
 			SAXException, IOException {
-		this.interrupt = interrupt;
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
@@ -155,15 +159,6 @@ public class XMLReader extends DefaultHandler {
 						File file = new File(url.getFile());
 						if (file.exists()) {
 							return new InputSource(new FileInputStream(file));
-						}
-						// File not existent -> try to resolve via
-						// classloaders...
-						if (locator != null) {
-							String name = file.getName();
-							InputStream stream = locator.find(name);
-							if (stream != null) {
-								return new InputSource(stream);
-							}
 						}
 					}
 					return null;
