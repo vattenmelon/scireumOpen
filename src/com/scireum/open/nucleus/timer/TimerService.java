@@ -1,7 +1,29 @@
+/**
+ * Copyright (c) 2012 scireum GmbH - Andreas Haufler - aha@scireum.de
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 package com.scireum.open.nucleus.timer;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
@@ -9,16 +31,17 @@ import java.util.logging.Level;
 
 import com.scireum.open.incidents.Incidents;
 import com.scireum.open.nucleus.Nucleus;
-import com.scireum.open.nucleus.core.Parts;
+import com.scireum.open.nucleus.core.InjectList;
 import com.scireum.open.nucleus.core.Register;
 
 /**
  * Internal service which is responsible for executing timers.
  */
-@Register(classes = { TimerService.class })
-public class TimerService {
+@Register(classes = { TimerInfo.class })
+public class TimerService implements TimerInfo {
 
-	private Parts<EveryMinute> everyMinute = Parts.of(EveryMinute.class);
+	@InjectList(EveryMinute.class)
+	private List<EveryMinute> everyMinute;
 	private long lastOneMinuteExecution = 0;
 
 	private Timer timer;
@@ -66,7 +89,7 @@ public class TimerService {
 
 		@Override
 		public void run() {
-			for (EveryMinute task : everyMinute.getUncached()) {
+			for (EveryMinute task : everyMinute) {
 				try {
 					task.runTimer();
 				} catch (Exception e) {
@@ -74,14 +97,12 @@ public class TimerService {
 							.set("class", task.getClass().getName()).handle();
 				}
 			}
-
+			lastOneMinuteExecution = System.currentTimeMillis();
 		}
 
 	}
 
-	/**
-	 * Returns the timestamp of the last execution of the one minute timer.
-	 */
+	@Override
 	public String getLastOneMinuteExecution() {
 		if (lastOneMinuteExecution == 0) {
 			return "-";

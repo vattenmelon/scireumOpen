@@ -21,8 +21,10 @@
  */
 package com.scireum.open.nucleus;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -57,6 +59,11 @@ public class Nucleus {
 		 * Invoked for each loaded class of a known module.
 		 */
 		void handle(Class<?> clazz) throws Exception;
+
+		/**
+		 * Invoked if all classes were processed.
+		 */
+		void loadingCompleted() throws Exception;
 
 	}
 
@@ -121,12 +128,15 @@ public class Nucleus {
 		}
 		initialized = true;
 		try {
+			Nucleus.LOG.info("Nucleus Microkernel is starting up...");
+			Nucleus.LOG.info("-------------------------------------");
 			List<URL> urls = Collections.list(Nucleus.class.getClassLoader()
 					.getResources("component.properties"));
 			List<Class<?>> classes = new ArrayList<Class<?>>();
 			List<ClassLoadAction> loaders = new ArrayList<ClassLoadAction>();
 			for (URL url : urls) {
-				LOG.info("Loading component: " + url.toString());
+				LOG.info("Loading component: " + getName(url) + " form "
+						+ url.toString());
 				for (String relativePath : getChildren(url)) {
 					if (relativePath.endsWith(".class")) {
 						String className = relativePath.substring(0,
@@ -157,6 +167,7 @@ public class Nucleus {
 				}
 			}
 
+			Nucleus.LOG.info("Processing Classes...");
 			// Handle all loaded classes.
 			for (Class<?> clazz : classes) {
 				for (ClassLoadAction loader : loaders) {
@@ -169,8 +180,35 @@ public class Nucleus {
 					}
 				}
 			}
+
+			Nucleus.LOG.info("Finalizing setup...");
+			// Notify loaders we're complete
+			for (ClassLoadAction loader : loaders) {
+				try {
+					loader.loadingCompleted();
+				} catch (Exception e) {
+					LOG.warning("Failed to complete: " + loader.getClass()
+							+ ": " + e.getMessage());
+				}
+			}
+			Nucleus.LOG.info("Nucleus is ready for operation...");
+			Nucleus.LOG.info("-------------------------------------");
 		} catch (IOException e) {
 			LOG.warning("Failed to discover components: " + e.getMessage());
+		}
+	}
+
+	private static String getName(URL url) {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					url.openStream()));
+			try {
+				return reader.readLine();
+			} finally {
+				reader.close();
+			}
+		} catch (IOException e) {
+			return "unknown";
 		}
 	}
 
@@ -233,6 +271,8 @@ public class Nucleus {
 	 * Registers a new object for the given class.
 	 */
 	public static void register(Class<?> clazz, Object object) {
+		Nucleus.LOG.fine("Registering: " + object + " [" + object.getClass()
+				+ "] for: " + clazz);
 		List<Object> objects = model.get(clazz);
 		if (objects == null) {
 			objects = new ArrayList<Object>();

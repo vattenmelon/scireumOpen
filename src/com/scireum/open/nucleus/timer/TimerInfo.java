@@ -19,40 +19,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.nucleus.core;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.scireum.open.nucleus.Nucleus;
-import com.scireum.open.nucleus.Nucleus.ClassLoadAction;
+package com.scireum.open.nucleus.timer;
 
 /**
- * Loads all classes wearing the @Register annotation.
+ * Provides some infos about the {@link TimerService}.
+ * 
  */
-public class ServiceLoadAction implements ClassLoadAction {
+public interface TimerInfo {
 
-	private List<Object> createdObjects = new ArrayList<Object>();
-
-	@Override
-	public void handle(Class<?> clazz) throws Exception {
-		if (clazz.isAnnotationPresent(Register.class)) {
-			Object instance = clazz.newInstance();
-			createdObjects.add(instance);
-			for (Class<?> marker : clazz.getAnnotation(Register.class)
-					.classes()) {
-				Nucleus.register(marker, instance);
-			}
-		}
-
-	}
-
-	@Override
-	public void loadingCompleted() throws Exception {
-		for (Object obj : createdObjects) {
-			Factory.inject(obj);
-		}
-		createdObjects.clear();
-	}
-
+	/**
+	 * Returns the timestamp of the last execution of the one minute timer.
+	 */
+	String getLastOneMinuteExecution();
 }

@@ -19,40 +19,53 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.nucleus.core;
+package examples.nucleus;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.logging.Level;
 
 import com.scireum.open.nucleus.Nucleus;
-import com.scireum.open.nucleus.Nucleus.ClassLoadAction;
+import com.scireum.open.nucleus.core.Part;
+import com.scireum.open.nucleus.core.Register;
+import com.scireum.open.nucleus.timer.EveryMinute;
+import com.scireum.open.nucleus.timer.TimerInfo;
 
-/**
- * Loads all classes wearing the @Register annotation.
- */
-public class ServiceLoadAction implements ClassLoadAction {
+import examples.ExampleStatistics;
 
-	private List<Object> createdObjects = new ArrayList<Object>();
+@Register(classes = EveryMinute.class)
+public class ExampleNucleus implements EveryMinute {
 
-	@Override
-	public void handle(Class<?> clazz) throws Exception {
-		if (clazz.isAnnotationPresent(Register.class)) {
-			Object instance = clazz.newInstance();
-			createdObjects.add(instance);
-			for (Class<?> marker : clazz.getAnnotation(Register.class)
-					.classes()) {
-				Nucleus.register(marker, instance);
-			}
+	/**
+	 * Used to deactivate this by default. This is required, since the class is
+	 * always loaded, even if another main class is started, like
+	 * {@link ExampleStatistics}. Therefore we only enabled the output we this
+	 * class is explicitely started.
+	 */
+	private static boolean enabled = false;
+
+	private static Part<TimerInfo> timerInfo = Part.of(TimerInfo.class);
+
+	public static void main(String[] args) throws Exception {
+		Nucleus.LOG.setLevel(Level.FINE);
+		Nucleus.init();
+
+		enabled = true;
+
+		while (true) {
+			Thread.sleep(10000);
+			System.out.println("Last invocation: "
+					+ timerInfo.get().getLastOneMinuteExecution());
 		}
 
 	}
 
 	@Override
-	public void loadingCompleted() throws Exception {
-		for (Object obj : createdObjects) {
-			Factory.inject(obj);
+	public void runTimer() throws Exception {
+		if (enabled) {
+			System.out.println("The time is: "
+					+ DateFormat.getTimeInstance().format(new Date()));
 		}
-		createdObjects.clear();
 	}
 
 }

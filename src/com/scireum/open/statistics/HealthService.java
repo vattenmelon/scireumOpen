@@ -24,10 +24,11 @@ package com.scireum.open.statistics;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.scireum.open.commons.BasicDataCollector;
-import com.scireum.open.nucleus.core.Parts;
+import com.scireum.open.nucleus.core.InjectList;
 import com.scireum.open.nucleus.core.Register;
 import com.scireum.open.nucleus.timer.EveryMinute;
 
@@ -39,13 +40,14 @@ import com.scireum.open.nucleus.timer.EveryMinute;
 @Register(classes = { EveryMinute.class, HealthService.class })
 public class HealthService implements EveryMinute {
 
-	private Parts<ProbeReport> reports = Parts.of(ProbeReport.class);
+	@InjectList(ProbeReport.class)
+	private List<ProbeReport> reports;
 	private static Map<Probe, ProbeLog> stats = Collections
 			.synchronizedMap(new LinkedHashMap<Probe, ProbeLog>());
 
 	@Override
 	public void runTimer() throws Exception {
-		for (ProbeReport report : reports.get()) {
+		for (ProbeReport report : reports) {
 			report.report(new BasicDataCollector<Probe>() {
 
 				@Override

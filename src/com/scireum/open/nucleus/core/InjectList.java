@@ -21,38 +21,23 @@
  */
 package com.scireum.open.nucleus.core;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import com.scireum.open.nucleus.Nucleus;
-import com.scireum.open.nucleus.Nucleus.ClassLoadAction;
 
 /**
- * Loads all classes wearing the @Register annotation.
+ * Marks a list-field a injection. The {@link Factory} will take the type of the
+ * field and retrieve the list of appropriate objects from {@link Nucleus}.
  */
-public class ServiceLoadAction implements ClassLoadAction {
-
-	private List<Object> createdObjects = new ArrayList<Object>();
-
-	@Override
-	public void handle(Class<?> clazz) throws Exception {
-		if (clazz.isAnnotationPresent(Register.class)) {
-			Object instance = clazz.newInstance();
-			createdObjects.add(instance);
-			for (Class<?> marker : clazz.getAnnotation(Register.class)
-					.classes()) {
-				Nucleus.register(marker, instance);
-			}
-		}
-
-	}
-
-	@Override
-	public void loadingCompleted() throws Exception {
-		for (Object obj : createdObjects) {
-			Factory.inject(obj);
-		}
-		createdObjects.clear();
-	}
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = ElementType.FIELD)
+public @interface InjectList {
+	/**
+	 * Since the generic parameter of the list is rectified, we need this
+	 * parameter to know what type to look for.
+	 */
+	Class<?> value();
 }
