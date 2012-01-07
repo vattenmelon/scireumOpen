@@ -22,38 +22,28 @@
 package examples;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.scireum.open.commons.BasicDataCollector;
-import com.scireum.open.statistics.LinuxReport;
-import com.scireum.open.statistics.Probe;
+import com.scireum.open.nucleus.Nucleus;
+import com.scireum.open.nucleus.core.Part;
+import com.scireum.open.statistics.HealthService;
 import com.scireum.open.statistics.ProbeLog;
-import com.scireum.open.statistics.ProbeReport;
-import com.scireum.open.statistics.SystemReport;
-import com.scireum.open.statistics.Watch;
 
 /**
- * Small example class which shows how to use the {@link Watch} class.
+ * Small example class which shows how to use the {@link HealthService} class.
  */
 public class ExampleStatistics {
 
-	private static Map<Probe, ProbeLog> stats = Collections
-			.synchronizedMap(new LinkedHashMap<Probe, ProbeLog>());
-	private static ProbeReport[] reports = new ProbeReport[] {
-			new SystemReport(), new LinuxReport() };
+	private static Part<HealthService> healthService = Part
+			.of(HealthService.class);
 
 	public static void main(String[] args) throws Exception {
+		Nucleus.init();
 		while (true) {
-			System.out.println("Collecting data....");
-			collectData();
-			System.out.println("----------------------------------");
-			outputData();
-			System.out.println("----------------------------------");
 			System.out.println("Waiting one minute...");
 			Thread.sleep(TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS));
+			outputData();
+			System.out.println("----------------------------------");
 		}
 	}
 
@@ -61,7 +51,7 @@ public class ExampleStatistics {
 	 * This would be placed in some admin interface etc.
 	 */
 	private static void outputData() {
-		for (ProbeLog log : stats.values()) {
+		for (ProbeLog log : healthService.get().getStatistics()) {
 			System.out.println(log.getProbe().getCategory()
 					+ " - "
 					+ log.getProbe().getName()
@@ -80,24 +70,4 @@ public class ExampleStatistics {
 
 	}
 
-	/**
-	 * This should normally be called by a timer in a 1 Minute interval!
-	 */
-	private static void collectData() {
-		for (ProbeReport report : reports) {
-			report.report(new BasicDataCollector<Probe>() {
-
-				@Override
-				public void add(Probe p) {
-					ProbeLog log = stats.get(p);
-					if (log == null) {
-						log = new ProbeLog(p);
-						stats.put(p, log);
-					}
-					log.add(p.readProbe());
-				}
-
-			});
-		}
-	}
 }

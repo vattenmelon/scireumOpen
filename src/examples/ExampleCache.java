@@ -9,12 +9,10 @@ import com.scireum.open.statistics.Watch;
 public class ExampleCache {
 	/**
 	 * Creates a cache which stores results of the fibonacci function. Values
-	 * are cached for 2 seconds (to demonstrate eviction), not automatically
-	 * computed and not verified on use.
+	 * are cached for 2 seconds (to demonstrate eviction).
 	 */
 	private static final Cache<Integer, Integer> fibCache = CacheManager
-			.createCache("Fibonacci", 10, null, 2, TimeUnit.SECONDS, null, 1,
-					TimeUnit.HOURS);
+			.createCache("Fibonacci", 10, 2, TimeUnit.SECONDS);
 
 	/**
 	 * Implementation of the fibonacci function with the option to use the
@@ -52,7 +50,7 @@ public class ExampleCache {
 
 		System.out.println("Running cache-eviction...");
 		// Normally this method would be called by an external timer regularly.
-		fibCache.runEviction();
+		CacheManager.runEviction();
 
 		outputStatistics();
 	}

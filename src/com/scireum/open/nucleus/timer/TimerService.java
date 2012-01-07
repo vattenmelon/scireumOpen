@@ -5,10 +5,12 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
+import com.scireum.open.incidents.Incidents;
+import com.scireum.open.nucleus.Nucleus;
 import com.scireum.open.nucleus.core.Parts;
 import com.scireum.open.nucleus.core.Register;
-import com.scireum.open.nucleus.incidents.Incidents;
 
 /**
  * Internal service which is responsible for executing timers.
@@ -25,7 +27,7 @@ public class TimerService {
 	public TimerService() {
 		start();
 	}
-	
+
 	public void start() {
 		try {
 			timerLock.lock();
@@ -41,7 +43,7 @@ public class TimerService {
 				timerLock.unlock();
 			}
 		} catch (Throwable t) {
-			Incidents.handle(t);
+			Nucleus.LOG.log(Level.WARNING, t.getMessage(), t);
 		}
 	}
 
@@ -56,7 +58,7 @@ public class TimerService {
 				timerLock.unlock();
 			}
 		} catch (Throwable t) {
-			Incidents.handle(t);
+			Nucleus.LOG.log(Level.WARNING, t.getMessage(), t);
 		}
 	}
 

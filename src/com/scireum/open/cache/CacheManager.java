@@ -75,4 +75,35 @@ public class CacheManager {
 		caches.add(result);
 		return result;
 	}
+
+	/**
+	 * Creates a cache with the given parameters.
+	 * 
+	 * @param name
+	 *            Contains the name of the cache. This is only used to display
+	 *            usage data and not used internally.
+	 * @param maxSize
+	 *            Contains the maximal number of entries or 0 which means
+	 *            "unlimited".
+	 * @param ttl
+	 *            Contains the time to live for each cached entry.
+	 * @param ttlUnit
+	 *            Contains the unit in which ttl is expressed.
+	 */
+	public static <K, V> Cache<K, V> createCache(String name, int maxSize,
+			long ttl, TimeUnit ttlUnit) {
+		Cache<K, V> result = new ManagedCache<K, V>(name, maxSize,
+				TimeUnit.MILLISECONDS.convert(ttl, ttlUnit), null, null, 10000);
+		caches.add(result);
+		return result;
+	}
+
+	/**
+	 * Cleans up all caches.
+	 */
+	public static void runEviction() {
+		for (Cache<?, ?> c : getCaches()) {
+			c.runEviction();
+		}
+	}
 }

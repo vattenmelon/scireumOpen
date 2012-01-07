@@ -19,32 +19,51 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package examples;
+package com.scireum.open.statistics;
 
-import java.text.DateFormat;
-import java.util.Date;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import com.scireum.open.nucleus.Nucleus;
+import com.scireum.open.commons.BasicDataCollector;
+import com.scireum.open.nucleus.core.Parts;
+import com.scireum.open.nucleus.core.Register;
 import com.scireum.open.nucleus.timer.EveryMinute;
 
-//@Register(classes = EveryMinute.class)
-public class ExampleNucleus implements EveryMinute {
+/**
+ * Used to collect statistics for all available {@link ProbeReport} instances.
+ * The collected statistics can retrieved by calling
+ * {@link HealthService#getStatistics()}.
+ */
+@Register(classes = { EveryMinute.class, HealthService.class })
+public class HealthService implements EveryMinute {
 
-	public static void main(String[] args) throws Exception {
-		Nucleus.init();
-		// We could use the @Register annotation as indicated above - but then
-		// it would be always triggered, no matter which of the examples you
-		// start, since it is always discovered as a class.
-		Nucleus.register(EveryMinute.class, new ExampleNucleus());
-		while (true) {
-			Thread.sleep(1000);
-		}
-	}
+	private Parts<ProbeReport> reports = Parts.of(ProbeReport.class);
+	private static Map<Probe, ProbeLog> stats = Collections
+			.synchronizedMap(new LinkedHashMap<Probe, ProbeLog>());
 
 	@Override
 	public void runTimer() throws Exception {
-		System.out.println("The time is: "
-				+ DateFormat.getTimeInstance().format(new Date()));
+		for (ProbeReport report : reports.get()) {
+			report.report(new BasicDataCollector<Probe>() {
+
+				@Override
+				public void add(Probe p) {
+					ProbeLog log = stats.get(p);
+					if (log == null) {
+						log = new ProbeLog(p);
+						stats.put(p, log);
+					}
+					log.add(p.readProbe());
+				}
+
+			});
+		}
+	}
+
+	public Collection<ProbeLog> getStatistics() {
+		return stats.values();
 	}
 
 }

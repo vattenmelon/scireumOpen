@@ -19,39 +19,23 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package com.scireum.open.nucleus.core;
+package com.scireum.open.cache;
 
 import com.scireum.open.nucleus.Nucleus;
+import com.scireum.open.nucleus.core.Register;
+import com.scireum.open.nucleus.timer.EveryMinute;
 
 /**
- * Provides access to a part registered for a given type. The part is initially
- * fetched from the model and then cached locally.
+ * Once {@link Nucleus} is initialized, this will cleanup all caches every
+ * minute. If you don't plan to use {@link Nucleus} you can ignore this class
+ * and need to call {@link CacheManager#runEviction()} regularly by your self.
  */
-public class Part<P> {
+@Register(classes = EveryMinute.class)
+public class CacheMaintenance implements EveryMinute {
 
-	private P object;
-	private Class<P> clazz;
-	private boolean loaded;
-
-	private Part(Class<P> clazz) {
-		this.clazz = clazz;
+	@Override
+	public void runTimer() throws Exception {
+		CacheManager.runEviction();
 	}
 
-	/**
-	 * Creates a new part which queries for the given class.
-	 */
-	public static <P> Part<P> of(Class<P> clazz) {
-		return new Part<P>(clazz);
-	}
-
-	/**
-	 * Returns the first object which was registered for the given class.
-	 */
-	public P get() {
-		if (!loaded) {
-			object = Nucleus.findPart(clazz);
-			loaded = true;
-		}
-		return object;
-	}
 }

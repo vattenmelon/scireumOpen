@@ -37,10 +37,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.scireum.open.commons.DataCollector;
+import com.scireum.open.nucleus.core.Register;
 
 /**
  * Provides statistics about the Java Runtime.
  */
+@Register(classes = ProbeReport.class)
 public class SystemReport implements ProbeReport {
 	private OperatingSystemMXBean os = ManagementFactory
 			.getOperatingSystemMXBean();
