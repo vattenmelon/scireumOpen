@@ -19,7 +19,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package examples.nucleus;
+package examples;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -30,8 +30,6 @@ import com.scireum.open.nucleus.core.Part;
 import com.scireum.open.nucleus.core.Register;
 import com.scireum.open.nucleus.timer.EveryMinute;
 import com.scireum.open.nucleus.timer.TimerInfo;
-
-import examples.ExampleStatistics;
 
 @Register(classes = EveryMinute.class)
 public class ExampleNucleus implements EveryMinute {
