@@ -79,7 +79,7 @@ public class Nucleus {
 	public static List<String> getChildren(URL url) {
 		List<String> result = new ArrayList<String>();
 		if ("file".equals(url.getProtocol())) {
-			File file = new File(url.getPath());
+			File file = new File(url.getURI());
 			if (!file.isDirectory()) {
 				file = file.getParentFile();
 			}
