@@ -78,14 +78,14 @@ public class Nucleus {
 	 */
 	public static List<String> getChildren(URL url) {
 		List<String> result = new ArrayList<String>();
-		if ("file".equals(url.getProtocol())) {
-			File file = new File(url.getURI());
-			if (!file.isDirectory()) {
-				file = file.getParentFile();
-			}
-			addFiles(file, result, file);
-		} else if ("jar".equals(url.getProtocol())) {
-			try {
+		try {
+			if ("file".equals(url.getProtocol())) {
+				File file = new File(url.toURI());
+				if (!file.isDirectory()) {
+					file = file.getParentFile();
+				}
+				addFiles(file, result, file);
+			} else if ("jar".equals(url.getProtocol())) {
 				JarFile jar = ((JarURLConnection) url.openConnection())
 						.getJarFile();
 				Enumeration<JarEntry> e = jar.entries();
@@ -93,9 +93,9 @@ public class Nucleus {
 					JarEntry entry = e.nextElement();
 					result.add(entry.getName());
 				}
-			} catch (IOException e) {
-				LOG.warning(e.getMessage());
 			}
+		} catch (Exception e) {
+			LOG.warning(e.getMessage());
 		}
 		return result;
 	}
