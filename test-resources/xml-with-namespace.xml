@@ -1,5 +1,0 @@
-<?xml version="1.0" ?>
-<myns:root xmlns:myns="http://jarannilsen.com/myns">
-    <myns:child attribute="value">Text</myns:child>
-    <myns:another>More text</myns:another>
-</myns:root>
