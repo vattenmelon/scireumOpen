@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2012 scireum GmbH - Andreas Haufler - aha@scireum.de
  *
- * Permission is hereby granted, free of charge, to any person obtaining a 
+ * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -21,17 +21,15 @@
  */
 package com.scireum.open.xml;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.transform.*;
+import javax.xml.xpath.*;
 
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.apache.xpath.CachedXPathAPI;
+import org.w3c.dom.*;
 
-import com.scireum.open.commons.Value;
+import com.scireum.open.commons.*;
 
 /**
  * Default implementation for XMLNode
@@ -39,7 +37,7 @@ import com.scireum.open.commons.Value;
 public class XMLNodeImpl implements StructuredNode {
 
 	private Node node;
-	private static final XPathFactory XPATH = XPathFactory.newInstance();
+	CachedXPathAPI cachedXPathAPI = new CachedXPathAPI();
 
 	public XMLNodeImpl(Node root) {
 		node = root;
@@ -47,50 +45,53 @@ public class XMLNodeImpl implements StructuredNode {
 
 	@Override
 	public StructuredNode queryNode(String path)
-			throws XPathExpressionException {
-		Node result = (Node) XPATH.newXPath().compile(path)
-				.evaluate(node, XPathConstants.NODE);
-		if (result == null) {
-			return null;
+	        throws XPathExpressionException {
+		Node result = queryForNode(path);
+		if (result != null) {
+			return new XMLNodeImpl(node);
 		}
-		return new XMLNodeImpl(result);
+		return null;
 	}
 
 	@Override
 	public List<StructuredNode> queryNodeList(String path)
-			throws XPathExpressionException {
-		NodeList result = (NodeList) XPATH.newXPath().compile(path)
-				.evaluate(node, XPathConstants.NODESET);
+	        throws XPathExpressionException {
+		NodeList selectNodeList = null;
+		try {
+				selectNodeList = cachedXPathAPI.selectNodeList(node, path);
+		} catch (TransformerException ex) {
+			throw new XPathExpressionException(ex);
+		}
 		List<StructuredNode> resultList = new ArrayList<StructuredNode>(
-				result.getLength());
-		for (int i = 0; i < result.getLength(); i++) {
-			resultList.add(new XMLNodeImpl(result.item(i)));
+		        selectNodeList.getLength());
+		for (int i = 0; i < selectNodeList.getLength(); i++) {
+			resultList.add(new XMLNodeImpl(selectNodeList.item(i)));
 		}
 		return resultList;
+
 	}
 
 	@Override
 	public StructuredNode[] queryNodes(String path)
-			throws XPathExpressionException {
+	        throws XPathExpressionException {
 		List<StructuredNode> nodes = queryNodeList(path);
 		return nodes.toArray(new StructuredNode[nodes.size()]);
 	}
 
 	@Override
 	public String queryString(String path) throws XPathExpressionException {
-		Object result = XPATH.newXPath().compile(path)
-				.evaluate(node, XPathConstants.NODE);
-		if (result == null) {
-			return null;
-		}
-		if (result instanceof Node) {
-			String s = ((Node) result).getTextContent();
-			if (s != null) {
-				return s.trim();
+		Node resultNode = queryForNode(path);
+		if (resultNode != null) {
+			if (resultNode instanceof Node) {
+				String s = resultNode.getTextContent();
+				if (s != null) {
+					return s.trim();
+				}
+				return s;
 			}
-			return s;
+			return resultNode.toString().trim();
 		}
-		return result.toString().trim();
+		return null;
 	}
 
 	@Override
@@ -112,5 +113,15 @@ public class XMLNodeImpl implements StructuredNode {
 	@Override
 	public Value queryValue(String path) throws XPathExpressionException {
 		return Value.of(queryString(path));
+	}
+
+	private Node queryForNode(String path) throws XPathExpressionException{
+		Node result = null;
+		try {
+				result = cachedXPathAPI.selectSingleNode(node, path);
+		} catch (TransformerException ex) {
+			throw new XPathExpressionException(ex);
+		}
+		return result;
 	}
 }
